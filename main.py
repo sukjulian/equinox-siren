@@ -89,7 +89,7 @@ if __name__ == '__main__':
     parser.add_argument('--path_to_image', type=str, default="img.png")
     parser.add_argument('--num_epochs', type=int, default=0)
 
-    parser.add_argument('--num_latent_channels', type=int, default=512)
-    parser.add_argument('--siren_omega', type=float, default=24.)
+    parser.add_argument('--num_latent_channels', type=int, default=256)
+    parser.add_argument('--siren_omega', type=float, default=128.)
 
     main(parser.parse_args())
