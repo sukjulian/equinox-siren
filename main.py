@@ -3,7 +3,7 @@ from src import SIREN
 import optax
 import equinox as eqx
 import os
-import imageio
+import skimage
 import jax.numpy as jnp
 from tqdm import tqdm
 
@@ -35,20 +35,22 @@ def main(args):
 
 
 def load_image(path):
-    image = imageio.v3.imread(path)
+    image = skimage.io.imread(path)
+    resize_image_dims = (*[min(image.shape[:2])] * 2, image.shape[-1])  # interpolation acts as smoothing
 
     grid = jnp.concatenate((
-        jnp.tile(jnp.linspace(0., image.shape[0] / max(image.shape), image.shape[0]), image.shape[1])[..., None],
-        jnp.repeat(jnp.linspace(0., image.shape[1] / max(image.shape), image.shape[1]), image.shape[0])[..., None]
+        jnp.tile(jnp.linspace(-1., 1., resize_image_dims[0]), resize_image_dims[1])[..., None],
+        jnp.repeat(jnp.linspace(-1., 1., resize_image_dims[1]), resize_image_dims[0])[..., None]
     ), axis=-1)
 
-    values = (image.reshape(-1, 3) / 255).astype('f4')
+    values = jnp.array(skimage.transform.resize((image / 255 * 2. - 1.).astype('f4'), resize_image_dims).reshape(-1, 3))
 
-    return {'grid': grid, 'values': values, 'image_dims': image.shape}
+    return {'grid': grid, 'values': values, 'image_dims': image.shape, 'resize_image_dims': resize_image_dims}
 
 
 def save_image(path, data):
-    imageio.imwrite(path, (data['values'].reshape(data['image_dims']) * 255).astype('u1'))
+    image = skimage.transform.resize(data['values'].reshape(data['resize_image_dims']), data['image_dims'])
+    skimage.io.imsave(path, ((jnp.clip(image, -1., 1.) + 1.) / 2. * 255).astype('u1'))
 
 
 def train(neural_network, data, num_epochs, optimiser_dict):
@@ -71,7 +73,7 @@ def optimisation_step(neural_network, optimiser_dict, data):
 
 @eqx.filter_grad
 def compute_loss(neural_network, data):
-    return jnp.mean(jnp.abs(data['values'] - neural_network(data['grid'])))  # mean absolute error
+    return jnp.mean((data['values'] - neural_network(data['grid'])) ** 2)  # mean squared error
 
 
 def load_neural_network_parameters(path, neural_network):
@@ -90,6 +92,6 @@ if __name__ == '__main__':
     parser.add_argument('--num_epochs', type=int, default=0)
 
     parser.add_argument('--num_latent_channels', type=int, default=256)
-    parser.add_argument('--siren_omega', type=float, default=128.)
+    parser.add_argument('--siren_omega', type=float, default=64.)
 
     main(parser.parse_args())

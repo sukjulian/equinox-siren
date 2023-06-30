@@ -1,8 +1,8 @@
-import jax.numpy as jnp
 import jax
+import jax.numpy as jnp
+import math
 import equinox as eqx
 import types
-import math
 
 
 def get_siren_weights_init_fun(omega: float, first_layer: bool = False):
@@ -10,9 +10,9 @@ def get_siren_weights_init_fun(omega: float, first_layer: bool = False):
     def init_fun(key: jax.random.PRNGKey, shape: tuple, dtype=jnp.float32):
 
         fan_in, _ = shape[-2:]
-        variance = 1. / fan_in if first_layer else jnp.sqrt(6 / fan_in) / omega
+        limit = 1. / fan_in if first_layer else math.sqrt(6 / fan_in) / omega
 
-        return jax.random.uniform(key, shape, dtype, minval=-variance, maxval=variance)
+        return jax.random.uniform(key, shape, dtype, minval=-limit, maxval=limit)
 
     return init_fun
 
@@ -20,9 +20,9 @@ def get_siren_weights_init_fun(omega: float, first_layer: bool = False):
 def siren_bias_init(key: jax.random.PRNGKey, shape: tuple, dtype=jnp.float32):
 
     fan_in = fan_out = shape[-1]
-    variance = jnp.sqrt(1. / fan_in)
+    limit = math.sqrt(1. / fan_in)
 
-    return jax.random.uniform(key, (fan_out,), dtype, minval=-variance, maxval=variance)
+    return jax.random.uniform(key, (fan_out,), dtype, minval=-limit, maxval=limit)
 
 
 class MLP(eqx.Module):
@@ -65,7 +65,7 @@ class Linear(eqx.Module):
     def __init__(self, num_channels_in: int, num_channels_out: int, rng_key: jax.random.PRNGKey):
         weights_rng_key, bias_rng_key = jax.random.split(rng_key, 2)
 
-        limit = 1. / math.sqrt(num_channels_in)
+        limit = math.sqrt(1. / num_channels_in)
         self.weights = jax.random.uniform(weights_rng_key, (num_channels_in, num_channels_out), minval=-limit, maxval=limit)
         self.bias = jax.random.uniform(bias_rng_key, (num_channels_out,), minval=-limit, maxval=limit)
 

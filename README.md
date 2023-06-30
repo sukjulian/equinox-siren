@@ -18,7 +18,7 @@ siren = SIREN(
 ```
 
 ## Training SIREN
-For an example on how to train the SIREN in Equinox, look at `main.py`. After installing [Optax](https://github.com/deepmind/optax#installation), [imageio](https://github.com/imageio/imageio) and [tqdm](https://github.com/tqdm/tqdm#installation), you can fit an image `img.png` via
+For an example on how to train the SIREN in Equinox, look at `main.py`. After installing [Optax](https://github.com/deepmind/optax#installation), [scikit-image](https://github.com/scikit-image/scikit-image#installation) and [tqdm](https://github.com/tqdm/tqdm#installation), you can fit an image `img.png` via
 ```
-python main.py --path_to_image img.png --num_epochs 4000
+python main.py --path_to_image img.png --num_epochs 1000
 ```
