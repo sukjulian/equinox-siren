@@ -50,7 +50,7 @@ class MLP(eqx.Module):
         self.activation = activation
         self.last_activation = lambda x : x if plain_last else activation
 
-    def __call__(self, x: jnp.array):
+    def __call__(self, x: jax.Array):
 
         for linear_layer in self.linear_layers[:-1]:
             x = self.activation(linear_layer(x))  # x: (batch, num_channels)
@@ -69,7 +69,7 @@ class Linear(eqx.Module):
         self.weights = jax.random.uniform(weights_rng_key, (num_channels_in, num_channels_out), minval=-limit, maxval=limit)
         self.bias = jax.random.uniform(bias_rng_key, (num_channels_out,), minval=-limit, maxval=limit)
 
-    def __call__(self, x: jnp.array):
+    def __call__(self, x: jax.Array):
         return x @ self.weights + self.bias  # x: (batch, num_channels_in)
 
 
@@ -128,5 +128,5 @@ class SIREN(eqx.Module):
         for key in ('weights', 'biases'):
             self.mlp = eqx.tree_at(lambda module : get_parameters_lists(module)[key], self.mlp, replace=init_lists[key])
 
-    def __call__(self, x: jnp.array):
+    def __call__(self, x: jax.Array):
         return self.mlp(x)
