@@ -10,7 +10,7 @@ def get_siren_weights_init_fun(omega: float, first_layer: bool = False):
     def init_fun(key: jax.random.PRNGKey, shape: tuple, dtype=jnp.float32):
 
         fan_in, _ = shape[-2:]
-        limit = 1. / fan_in if first_layer else math.sqrt(6 / fan_in) / omega
+        limit = 1. / fan_in if first_layer else math.sqrt(6. / fan_in) / omega
 
         return jax.random.uniform(key, shape, dtype, minval=-limit, maxval=limit)
 
